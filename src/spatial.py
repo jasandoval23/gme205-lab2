@@ -68,3 +68,45 @@ class Point:
         return (self.tag or "").lower() == "poi"
 
 class PointSet:
+    def __init__(self, points):
+        self.points = points
+
+    @classmethod
+    def from_csv(cls, path):
+        points = []
+
+        with open(path, newline="", encoding="utf-8") as file:
+            reader = csv.DictReader(file)
+
+            # for row in reader:
+            #     point = Point.from_row(row)
+            #     points.append(point)
+
+            for row in reader:
+                try:
+                    point = Point.from_row(row)
+                    points.append(point)
+                except (ValueError, KeyError, TypeError):
+                    continue
+
+            return cls(points)
+
+    def count(self):
+        return len(self.points)
+
+    def bbox(self):
+        min_lon = min(point.lon for point in self.points)
+        min_lat = min(point.lat for point in self.points)
+        max_lon = max(point.lon for point in self.points)
+        max_lat = max(point.lat for point in self.points)
+
+        return (min_lon, min_lat, max_lon, max_lat)
+
+    def filter_by_tag(self, tag):
+        filtered_points = []
+
+        for point in self.points:
+            if point.tag == tag:
+                filtered_points.append(point)
+
+        return PointSet(filtered_points)
